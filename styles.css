@@ -347,6 +347,8 @@ body {
   box-shadow: var(--shadow);
   margin: 12px 12px 0 24px;
   overflow: hidden;
+  /* recent-aside is now before agenda-view in DOM; push it after on desktop */
+  order: 2;
 }
 
 #recent-aside.recent-collapsed .legend-toggle svg { transform: rotate(-90deg); }
@@ -1073,7 +1075,7 @@ body {
     position: sticky;
     top: calc(var(--header-height) + var(--legend-panel-h, 40px));
     z-index: 89;
-    order: 2;
+    order: 1;
   }
   .month-block {
     scroll-margin-top: calc(var(--header-height) + var(--legend-panel-h, 40px) + 44px);

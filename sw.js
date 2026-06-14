@@ -1,7 +1,6 @@
-const CACHE = 'cytocal-v5';
+const CACHE = 'cytocal-v7';
 
 const SHELL = [
-  './',
   './index.html',
   './styles.css',
   './theme-init.js',
@@ -50,10 +49,14 @@ self.addEventListener('fetch', (e) => {
   }
 
   // Cache-first for the app shell; fall through to network and cache the
-  // response for future offline use.
+  // response for future offline use. For navigation requests not found in
+  // cache (e.g. '/' on GitHub Pages which may redirect), serve index.html.
   e.respondWith(
     caches.match(e.request).then((cached) => {
       if (cached) return cached;
+      if (e.request.mode === 'navigate') {
+        return caches.match('./index.html');
+      }
       return fetch(e.request).then((resp) => {
         const clone = resp.clone();
         caches.open(CACHE).then((cache) => cache.put(e.request, clone));

@@ -131,11 +131,14 @@ function initAuth() {
   if (localStorage.getItem('isSignedIn') === 'true') {
     showSignedInShell();
     if (localStorage.getItem('calSetupDone')) {
+      // Render from cache immediately — no popup on load.
+      // The user can tap ↺ when they want fresh data; that button handles auth.
       renderCalendarView();
     } else {
+      // First-time setup: we need a token to fetch the calendar list.
       showLoading('Syncing your calendar…');
+      tokenClient.requestAccessToken({ prompt: '' });
     }
-    tokenClient.requestAccessToken({ prompt: '' });
   }
 }
 
