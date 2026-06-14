@@ -1,4 +1,4 @@
-const CACHE = 'cytocal-v7';
+const CACHE = 'cytocal-v8';
 
 const SHELL = [
   './index.html',
@@ -55,7 +55,7 @@ self.addEventListener('fetch', (e) => {
     caches.match(e.request).then((cached) => {
       if (cached) return cached;
       if (e.request.mode === 'navigate') {
-        return caches.match('./index.html');
+        return caches.match('./index.html').then((r) => r || fetch('./index.html'));
       }
       return fetch(e.request).then((resp) => {
         const clone = resp.clone();
