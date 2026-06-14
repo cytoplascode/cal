@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- White background with rounded corners -->
+  <rect width="512" height="512" rx="80" fill="#ffffff"/>
+
+  <!-- Calendar body outline -->
+  <rect x="64" y="96" width="384" height="352" rx="32" fill="#ffffff" stroke="#1a73e8" stroke-width="16"/>
+
+  <!-- Calendar header bar (blue) -->
+  <rect x="64" y="96" width="384" height="112" rx="32" fill="#1a73e8"/>
+  <!-- Square off the bottom corners of the header so it's flush with the body -->
+  <rect x="64" y="176" width="384" height="32" fill="#1a73e8"/>
+
+  <!-- Binding ring – left -->
+  <rect x="152" y="56" width="24" height="80" rx="12" fill="#1557b0"/>
+  <!-- Binding ring – right -->
+  <rect x="336" y="56" width="24" height="80" rx="12" fill="#1557b0"/>
+
+  <!-- Divider line between header and body -->
+  <line x1="64" y1="208" x2="448" y2="208" stroke="#e0e0e0" stroke-width="8"/>
+
+  <!-- Date number -->
+  <text
+    x="256"
+    y="390"
+    text-anchor="middle"
+    font-family="Google Sans, Roboto, Arial, sans-serif"
+    font-size="180"
+    font-weight="700"
+    fill="#1a73e8"
+  >31</text>
+</svg>

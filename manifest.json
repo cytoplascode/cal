@@ -1,0 +1,15 @@
+{
+  "id": "/",
+  "name": "Cytocal",
+  "short_name": "Cytocal",
+  "description": "Cytocal PWA",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#ffffff",
+  "theme_color": "#1a73e8",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar – Picker Preview</title>
+  <style>
+:root{
+  --blue:#1a73e8;--surface:#fff;--surface-2:#f8f9fa;--on-surface:#202124;
+  --secondary-text:#5f6368;--border:#e0e0e0;
+  --shadow:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08);
+  --shadow-md:0 4px 8px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.08);
+  --radius:8px;--radius-pill:9999px;--header-height:56px;--cal-col-width:216px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--surface:#1e1e1e;--surface-2:#141414;--on-surface:#e8eaed;--secondary-text:#9aa0a6;--border:#2e2e2e}
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Google Sans",Roboto,-apple-system,sans-serif;background:var(--surface-2);color:var(--on-surface);line-height:1.5}
+
+/* ── Header ── */
+.header{
+  position:sticky;top:0;z-index:100;height:var(--header-height);
+  background:var(--surface);border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:8px;
+}
+.header-left{display:flex;align-items:center;gap:12px}
+.header h1{font-size:1.125rem;font-weight:400}
+.header-right{display:flex;align-items:center;gap:4px}
+.btn-secondary{
+  display:inline-flex;align-items:center;padding:7px 19px;
+  background:transparent;color:var(--blue);border:1px solid var(--blue);
+  border-radius:var(--radius-pill);font-family:inherit;font-size:.875rem;font-weight:500;cursor:pointer;
+}
+.icon-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:40px;height:40px;background:transparent;color:var(--secondary-text);
+  border:none;border-radius:50%;cursor:pointer;transition:background .15s,color .15s;
+}
+.icon-btn:hover{background:var(--surface-2);color:var(--on-surface)}
+/* Active/open state for calendars button */
+.icon-btn.active{background:var(--blue-light,#e8f0fe);color:var(--blue)}
+
+/* ── Calendar picker popover ── */
+#cal-picker{
+  position:fixed;
+  top:calc(var(--header-height) + 6px);
+  right:12px;
+  z-index:300;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-md);
+  min-width:230px;max-width:300px;
+  overflow:hidden;
+}
+.picker-header{
+  padding:11px 16px 9px;
+  font-size:.6875rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--secondary-text);
+  border-bottom:1px solid var(--border);
+}
+.cal-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;cursor:pointer;user-select:none;transition:background .12s;
+}
+.cal-row:hover{background:var(--surface-2)}
+.cal-dot-lg{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cal-row-name{flex:1;font-size:.875rem;color:var(--on-surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-row-check{
+  width:18px;height:18px;border-radius:3px;
+  border:2px solid var(--border);flex-shrink:0;
+  position:relative;transition:background .12s,border-color .12s;
+}
+.cal-row-check.on{
+  background:var(--c,var(--blue));
+  border-color:var(--c,var(--blue));
+}
+.cal-row-check.on::after{
+  content:'';position:absolute;left:3px;top:0;
+  width:5px;height:10px;
+  border:2px solid #fff;border-top:none;border-left:none;
+  transform:rotate(45deg);
+}
+/* Unchecked row is dimmed slightly */
+.cal-row.hidden-cal .cal-row-name{color:var(--secondary-text)}
+
+/* ── Calendar view ── */
+#cal{max-width:960px;margin:0 auto;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.mr{display:grid;grid-template-columns:var(--cal-col-width) 1fr 1fr;border-bottom:1px solid var(--border);background:var(--surface)}
+.mc{padding:16px 12px;border-right:1px solid var(--border);background:var(--surface-2)}
+.mn{font-size:.6875rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--secondary-text);text-align:center;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{text-align:center;padding:3px 0 5px;font-size:.6875rem;font-weight:600;color:var(--secondary-text);text-transform:uppercase;letter-spacing:.04em}
+th.wk{color:#c5221f}
+td{text-align:center;padding:2px 0;vertical-align:top}
+.dn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:.8125rem;color:var(--on-surface);line-height:1;font-feature-settings:'tnum'}
+.dp .dn{color:var(--secondary-text)}
+.dw>.dn{color:#c5221f}
+.dt .dn{background:var(--blue);color:#fff;font-weight:700}
+.dots{display:flex;justify-content:center;gap:2px;margin-top:2px;min-height:6px}
+.dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;display:inline-block}
+.dot-t{background:transparent!important;border:1.5px solid #202124;width:5px;height:5px}
+.ec{padding:16px 20px;background:var(--surface);min-height:80px}
+.ec+.ec{border-left:1px solid var(--border)}
+.ch{font-size:.6875rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--secondary-text);padding-bottom:9px;margin-bottom:10px;border-bottom:1px solid var(--border)}
+.ev{display:flex;align-items:flex-start;gap:8px;margin-bottom:9px;border-left:3px solid var(--c,var(--blue));padding-left:8px}
+.chip{display:inline-block;font-size:.6875rem;font-weight:700;white-space:nowrap;padding:2px 6px;border-radius:4px;flex-shrink:0;line-height:1.6;font-feature-settings:'tnum';margin-top:1px;min-width:28px;text-align:center}
+.ttl{font-size:.875rem;color:var(--on-surface);line-height:1.45}
+
+/* Events from the hidden calendar are struck out to illustrate the effect */
+.ev.hidden-ev{opacity:.3;text-decoration:line-through}
+
+/* Responsive */
+@media(max-width:900px){:root{--cal-col-width:172px}.ec{padding:14px}.ttl{font-size:.8125rem}}
+@media(max-width:640px){
+  :root{--cal-col-width:132px}
+  .mn{font-size:.625rem} th{font-size:.5rem;padding:1px 0 3px}
+  .dn{width:20px;height:20px;font-size:.625rem} .dot{width:3px;height:3px}
+  .ec{padding:10px 8px} .ch{font-size:.5625rem;padding-bottom:6px;margin-bottom:6px}
+  .ttl{font-size:.75rem} .chip{font-size:.5625rem;padding:1px 4px;min-width:22px}
+  .ev{gap:5px;padding-left:5px;margin-bottom:6px}
+}
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="header">
+  <div class="header-left">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="4" width="18" height="17" rx="2" stroke="#1a73e8" stroke-width="2" fill="none"/>
+      <line x1="3" y1="9" x2="21" y2="9" stroke="#1a73e8" stroke-width="2"/>
+      <line x1="8" y1="2" x2="8" y2="6" stroke="#1a73e8" stroke-width="2" stroke-linecap="round"/>
+      <line x1="16" y1="2" x2="16" y2="6" stroke="#1a73e8" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <h1>Google Calendar</h1>
+  </div>
+  <div class="header-right">
+    <!-- Calendar selector button — shown as active/open -->
+    <button class="icon-btn active" aria-label="Select calendars" aria-expanded="true">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="4" cy="5"  r="2" fill="currentColor"/>
+        <line x1="8.5" y1="5"  x2="17" y2="5"  stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="4" cy="10" r="2" fill="currentColor"/>
+        <line x1="8.5" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="4" cy="15" r="2" fill="currentColor"/>
+        <line x1="8.5" y1="15" x2="17" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <button class="icon-btn" aria-label="Refresh">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+    </button>
+    <button class="btn-secondary">Sign out</button>
+  </div>
+</header>
+
+<!-- ── Calendar picker — open, "Holidays in UK" unchecked ── -->
+<div id="cal-picker">
+  <div class="picker-header">Calendars</div>
+
+  <div class="cal-row">
+    <span class="cal-dot-lg" style="background:#1a73e8"></span>
+    <span class="cal-row-name">Work</span>
+    <span class="cal-row-check on" style="--c:#1a73e8"></span>
+  </div>
+  <div class="cal-row">
+    <span class="cal-dot-lg" style="background:#e67c73"></span>
+    <span class="cal-row-name">Personal</span>
+    <span class="cal-row-check on" style="--c:#e67c73"></span>
+  </div>
+  <div class="cal-row">
+    <span class="cal-dot-lg" style="background:#33b679"></span>
+    <span class="cal-row-name">Health &amp; fitness</span>
+    <span class="cal-row-check on" style="--c:#33b679"></span>
+  </div>
+  <!-- Unchecked — Birthdays hidden -->
+  <div class="cal-row hidden-cal">
+    <span class="cal-dot-lg" style="background:#f6bf26"></span>
+    <span class="cal-row-name">Birthdays</span>
+    <span class="cal-row-check"></span>
+  </div>
+  <div class="cal-row">
+    <span class="cal-dot-lg" style="background:#039be5"></span>
+    <span class="cal-row-name">Holidays in UK</span>
+    <span class="cal-row-check on" style="--c:#039be5"></span>
+  </div>
+</div>
+
+<!-- ── Calendar view ── -->
+<div id="cal">
+
+<!-- MAY -->
+<section class="mr">
+  <div class="mc">
+    <div class="mn">May</div>
+    <table><thead><tr>
+      <th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th>
+      <th class="wk">Sa</th><th class="wk">Su</th>
+    </tr></thead><tbody>
+      <tr>
+        <td class="dp"><span class="dn">1</span><div class="dots"><span class="dot" style="background:#d93025"></span></div></td>
+        <td class="dp"><span class="dn">2</span></td><td class="dp"><span class="dn">3</span></td>
+        <td class="dp"><span class="dn">4</span></td><td class="dp"><span class="dn">5</span></td>
+        <td class="dw dp"><span class="dn">6</span></td><td class="dw dp"><span class="dn">7</span></td>
+      </tr><tr>
+        <td class="dp"><span class="dn">8</span></td>
+        <td class="dp"><span class="dn">9</span><div class="dots"><span class="dot" style="background:#33b679"></span></div></td>
+        <td class="dp"><span class="dn">10</span></td><td class="dp"><span class="dn">11</span></td>
+        <td class="dp"><span class="dn">12</span></td>
+        <td class="dw dp"><span class="dn">13</span></td><td class="dw dp"><span class="dn">14</span></td>
+      </tr><tr>
+        <td class="dp"><span class="dn">15</span></td>
+        <td class="dp"><span class="dn">16</span></td>
+        <td class="dp"><span class="dn">17</span></td>
+        <td class="dt"><span class="dn">18</span><div class="dots"><span class="dot" style="background:#1a73e8"></span><span class="dot" style="background:#e67c73"></span></div></td>
+        <td><span class="dn">19</span><div class="dots"><span class="dot dot-t"></span></div></td>
+        <td class="dw"><span class="dn">20</span></td><td class="dw"><span class="dn">21</span></td>
+      </tr><tr>
+        <td><span class="dn">22</span><div class="dots"><span class="dot" style="background:#d93025"></span></div></td>
+        <td><span class="dn">23</span><div class="dots"><span class="dot" style="background:#d93025"></span></div></td>
+        <td><span class="dn">24</span><div class="dots"><span class="dot" style="background:#d93025"></span></div></td>
+        <td><span class="dn">25</span><div class="dots"><span class="dot" style="background:#d93025"></span></div></td>
+        <td><span class="dn">26</span><div class="dots"><span class="dot" style="background:#d93025"></span></div></td>
+        <td class="dw"><span class="dn">27</span><div class="dots"><span class="dot" style="background:#d93025"></span></div></td>
+        <td class="dw"><span class="dn">28</span><div class="dots"><span class="dot" style="background:#d93025"></span></div></td>
+      </tr><tr>
+        <td><span class="dn">29</span><div class="dots"><span class="dot" style="background:#d93025"></span></div></td>
+        <td><span class="dn">30</span></td>
+        <td><span class="dn">31</span><div class="dots"><span class="dot" style="background:#1a73e8"></span></div></td>
+        <td></td><td></td><td></td><td></td>
+      </tr>
+    </tbody></table>
+  </div>
+
+  <div class="ec">
+    <div class="ch">Confirmed</div>
+    <div class="ev" style="--c:#d93025"><span class="chip" style="background:#d9302522;color:#d93025">1</span><span class="ttl">Flight to NYC ✈️</span></div>
+    <div class="ev" style="--c:#33b679"><span class="chip" style="background:#33b67922;color:#33b679">9</span><span class="ttl">Yoga class</span></div>
+    <!-- Birthday event — shown dimmed because Birthdays calendar is hidden -->
+    <div class="ev hidden-ev" style="--c:#f6bf26"><span class="chip" style="background:#f6bf2622;color:#f6bf26">15</span><span class="ttl">Dad's birthday 🎂</span></div>
+    <div class="ev" style="--c:#1a73e8"><span class="chip" style="background:#1a73e822;color:#1a73e8">18</span><span class="ttl">Q2 Review — Design System</span></div>
+    <div class="ev" style="--c:#e67c73"><span class="chip" style="background:#e67c7322;color:#e67c73">18</span><span class="ttl">Lunch with Alice</span></div>
+    <div class="ev" style="--c:#d93025"><span class="chip" style="background:#d9302522;color:#d93025">22–29</span><span class="ttl">Holiday — Bali 🌴</span></div>
+    <div class="ev" style="--c:#1a73e8"><span class="chip" style="background:#1a73e822;color:#1a73e8">31</span><span class="ttl">Sprint Retrospective</span></div>
+  </div>
+
+  <div class="ec">
+    <div class="ch">Possible / To be figured out</div>
+    <div class="ev" style="--c:#757575"><span class="chip" style="background:#75757522;color:#757575">19</span><span class="ttl">Vipassana day (check schedule)</span></div>
+    <div class="ev" style="--c:#757575"><span class="chip" style="background:#75757522;color:#757575">31</span><span class="ttl">Tom's leaving drinks? (TBC)</span></div>
+  </div>
+</section>
+
+<!-- JUNE -->
+<section class="mr">
+  <div class="mc">
+    <div class="mn">June</div>
+    <table><thead><tr>
+      <th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th>
+      <th class="wk">Sa</th><th class="wk">Su</th>
+    </tr></thead><tbody>
+      <tr>
+        <td></td><td></td><td></td><td></td><td></td>
+        <td class="dw"><span class="dn">1</span><div class="dots"><span class="dot" style="background:#e67c73"></span></div></td>
+        <td class="dw"><span class="dn">2</span></td>
+      </tr><tr>
+        <td><span class="dn">3</span></td><td><span class="dn">4</span></td>
+        <td><span class="dn">5</span><div class="dots"><span class="dot" style="background:#1a73e8"></span></div></td>
+        <td><span class="dn">6</span></td><td><span class="dn">7</span></td>
+        <td class="dw"><span class="dn">8</span></td><td class="dw"><span class="dn">9</span></td>
+      </tr><tr>
+        <td><span class="dn">10</span></td><td><span class="dn">11</span></td>
+        <td><span class="dn">12</span></td>
+        <td><span class="dn">13</span><div class="dots"><span class="dot dot-t"></span></div></td>
+        <td><span class="dn">14</span></td>
+        <td class="dw"><span class="dn">15</span></td><td class="dw"><span class="dn">16</span></td>
+      </tr><tr>
+        <td><span class="dn">17</span></td>
+        <td><span class="dn">18</span><div class="dots"><span class="dot" style="background:#33b679"></span></div></td>
+        <td><span class="dn">19</span></td><td><span class="dn">20</span></td>
+        <td><span class="dn">21</span><div class="dots"><span class="dot" style="background:#e67c73"></span></div></td>
+        <td class="dw"><span class="dn">22</span></td><td class="dw"><span class="dn">23</span></td>
+      </tr><tr>
+        <td><span class="dn">24</span></td><td><span class="dn">25</span></td>
+        <td><span class="dn">26</span></td><td><span class="dn">27</span></td>
+        <td><span class="dn">28</span></td>
+        <td class="dw"><span class="dn">29</span></td><td class="dw"><span class="dn">30</span></td>
+      </tr>
+    </tbody></table>
+  </div>
+
+  <div class="ec">
+    <div class="ch">Confirmed</div>
+    <div class="ev" style="--c:#e67c73"><span class="chip" style="background:#e67c7322;color:#e67c73">1</span><span class="ttl">Tom's birthday party</span></div>
+    <div class="ev" style="--c:#1a73e8"><span class="chip" style="background:#1a73e822;color:#1a73e8">5</span><span class="ttl">All-hands — H2 planning</span></div>
+    <div class="ev" style="--c:#33b679"><span class="chip" style="background:#33b67922;color:#33b679">18</span><span class="ttl">Annual checkup</span></div>
+    <div class="ev" style="--c:#e67c73"><span class="chip" style="background:#e67c7322;color:#e67c73">21</span><span class="ttl">Dinner — parents visit</span></div>
+  </div>
+
+  <div class="ec">
+    <div class="ch">Possible / To be figured out</div>
+    <div class="ev" style="--c:#757575"><span class="chip" style="background:#75757522;color:#757575">13–15</span><span class="ttl">Weekend in Amsterdam?</span></div>
+  </div>
+</section>
+
+</div>
+
+<script>
+// Make the preview interactive — clicking a row toggles it
+document.querySelectorAll('.cal-row').forEach(row => {
+  row.addEventListener('click', () => {
+    const check = row.querySelector('.cal-row-check');
+    const isOn  = check.classList.toggle('on');
+    row.classList.toggle('hidden-cal', !isOn);
+    // Also toggle the faded birthday event to illustrate the effect
+    if (row.querySelector('.cal-row-name').textContent.includes('Birthdays')) {
+      document.querySelectorAll('.hidden-ev').forEach(ev => ev.style.display = isOn ? 'none' : 'flex');
+    }
+  });
+});
+</script>
+</body>
+</html>

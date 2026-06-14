@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a73e8" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Cytocal" />
+  <meta name="description" content="Cytocal PWA" />
+  <!-- Content Security Policy. connect-src and frame-src must allow
+       accounts.google.com for Google Identity Services sign-in. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://www.googleapis.com https://accounts.google.com; frame-src https://accounts.google.com;">
+  <title>Cytocal</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icons/icon.svg" />
+  <link rel="stylesheet" href="./styles.css" />
+  <!-- External (not inline) so it complies with the CSP above. -->
+  <script src="./theme-init.js"></script>
+</head>
+<body>
+
+  <div id="offline-banner" hidden aria-live="polite">
+    You are offline. Showing cached events.
+  </div>
+
+  <header class="header">
+    <div class="header-left">
+      <div class="header-icon" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="4" width="18" height="17" rx="2" stroke="#1a73e8" stroke-width="2" fill="none"/>
+          <line x1="3" y1="9" x2="21" y2="9" stroke="#1a73e8" stroke-width="2"/>
+          <line x1="8" y1="2" x2="8" y2="6" stroke="#1a73e8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="16" y1="2" x2="16" y2="6" stroke="#1a73e8" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1>Cytocal</h1>
+    </div>
+    <div class="header-right">
+      <button id="btn-refresh" class="icon-btn" hidden aria-label="Refresh calendar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+      </button>
+      <button id="btn-theme" class="icon-btn" aria-label="Toggle theme">
+        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+      </button>
+      <button id="btn-signin" class="btn-primary">Sign in</button>
+      <button id="btn-menu" class="icon-btn" hidden aria-label="Menu" aria-expanded="false">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="10" cy="4"  r="1.6"/>
+          <circle cx="10" cy="10" r="1.6"/>
+          <circle cx="10" cy="16" r="1.6"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="app-menu" hidden role="dialog" aria-label="Menu">
+    <div class="picker-header">Calendars</div>
+    <div class="menu-col-assign">
+      <label class="col-assign-row">
+        <span class="col-assign-label">Confirmed</span>
+        <select id="menu-select-confirmed" class="col-assign-select"></select>
+      </label>
+      <label class="col-assign-row">
+        <span class="col-assign-label">Possible</span>
+        <select id="menu-select-possible" class="col-assign-select"></select>
+      </label>
+      <label class="col-assign-row">
+        <span class="col-assign-label">On-call</span>
+        <select id="menu-select-oncall" class="col-assign-select"></select>
+      </label>
+    </div>
+    <div class="menu-divider"></div>
+    <button id="btn-signout" class="menu-signout">Sign out</button>
+  </div>
+
+  <div id="install-banner" hidden role="banner">
+    <span>Install Calendar for offline access</span>
+    <button id="btn-install" class="btn-install">Add to Home Screen</button>
+    <button id="btn-install-dismiss" class="icon-btn install-dismiss" aria-label="Dismiss">&#x2715;</button>
+  </div>
+
+  <main id="main-content">
+
+    <div id="welcome-screen">
+      <div class="welcome-card">
+        <div class="welcome-icon" aria-hidden="true">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="8" width="56" height="52" rx="6" fill="#e8f0fe"/>
+            <rect x="4" y="8" width="56" height="52" rx="6" stroke="#1a73e8" stroke-width="2"/>
+            <line x1="4" y1="22" x2="60" y2="22" stroke="#1a73e8" stroke-width="2"/>
+            <line x1="20" y1="4" x2="20" y2="14" stroke="#1a73e8" stroke-width="3" stroke-linecap="round"/>
+            <line x1="44" y1="4" x2="44" y2="14" stroke="#1a73e8" stroke-width="3" stroke-linecap="round"/>
+            <text x="32" y="48" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="bold" fill="#1a73e8">31</text>
+          </svg>
+        </div>
+        <h2>Your Calendar</h2>
+        <p>Sign in with your Google account to view your upcoming events.</p>
+        <div class="client-id-field">
+          <label class="client-id-label" for="input-client-id">Google OAuth Client ID</label>
+          <input id="input-client-id" class="client-id-input" type="text"
+                 placeholder="xxxx.apps.googleusercontent.com"
+                 autocomplete="off" spellcheck="false" />
+        </div>
+        <button id="btn-signin-welcome" class="btn-primary btn-large">
+          <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+            <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+            <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z" fill="#EA4335"/>
+          </svg>
+          Sign in with Google
+        </button>
+      </div>
+    </div>
+
+    <div id="loading-screen" hidden>
+      <div class="loading-content">
+        <div class="spinner" aria-label="Loading"></div>
+        <p id="loading-message">Syncing your calendar&hellip;</p>
+      </div>
+    </div>
+
+    <div id="calendar-setup" hidden aria-label="Calendar setup">
+      <div class="setup-card">
+        <h2>Set up your calendars</h2>
+        <p>Pick the calendar that holds your confirmed events, the one for possible events, and the one for Philippe's on-call shifts. Only these calendars are shown.</p>
+        <div class="setup-col-assign">
+          <label class="col-assign-row">
+            <span class="col-assign-label">Confirmed</span>
+            <select id="setup-select-confirmed" class="col-assign-select"></select>
+          </label>
+          <label class="col-assign-row">
+            <span class="col-assign-label">Possible</span>
+            <select id="setup-select-possible" class="col-assign-select"></select>
+          </label>
+          <label class="col-assign-row">
+            <span class="col-assign-label">On-call</span>
+            <select id="setup-select-oncall" class="col-assign-select"></select>
+          </label>
+        </div>
+        <button id="btn-setup-done" class="btn-primary btn-large">Get started</button>
+      </div>
+    </div>
+
+    <aside id="legend-aside" hidden aria-label="Legend">
+      <button id="legend-toggle" class="legend-toggle" aria-expanded="true" aria-label="Toggle legend">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+        Legend
+      </button>
+      <div id="legend-body" class="legend-body"></div>
+    </aside>
+
+    <div id="agenda-view" hidden aria-label="Agenda view">
+    </div>
+
+    <aside id="recent-aside" hidden aria-label="Recent changes">
+      <button id="recent-toggle" class="legend-toggle" aria-expanded="false" aria-label="Toggle recent changes">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+        Recent
+      </button>
+      <div id="recent-body" class="recent-body"></div>
+    </aside>
+
+  </main>
+
+  <div id="event-modal" hidden role="dialog" aria-modal="true" aria-label="Event editor">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modal-title-heading">New event</h2>
+        <button id="modal-btn-delete" class="icon-btn modal-delete" hidden aria-label="Delete event">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+            <path d="M10 11v6M14 11v6"></path>
+            <path d="M9 6V4h6v2"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label class="modal-label" for="modal-input-title">Title</label>
+          <input id="modal-input-title" class="modal-input" type="text" placeholder="Add title" autocomplete="off" />
+        </div>
+        <div class="modal-field modal-field-row">
+          <div class="modal-field" style="flex:1">
+            <label class="modal-label" for="modal-input-start">Start date</label>
+            <input id="modal-input-start" class="modal-input" type="date" />
+          </div>
+          <div class="modal-field" style="flex:1">
+            <label class="modal-label" for="modal-input-end">End date</label>
+            <input id="modal-input-end" class="modal-input" type="date" />
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-label">Place in</div>
+          <div id="modal-placement-btns" class="modal-placement-btns" role="group" aria-label="Place event in column">
+            <button id="modal-btn-confirmed" class="placement-btn placement-active" type="button">Confirmed</button>
+            <button id="modal-btn-possible" class="placement-btn" type="button">Possible</button>
+          </div>
+        </div>
+        <div class="modal-field">
+          <div class="modal-label">Colour</div>
+          <div id="modal-color-swatches" class="color-swatches" role="radiogroup" aria-label="Event colour"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="modal-btn-cancel" class="btn-secondary">Cancel</button>
+        <button id="modal-btn-save" class="btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="./db.js"></script>
+  <script src="./calendar-api.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
